@@ -1,0 +1,2 @@
+# fastApiAicrag
+Api python FastApi
