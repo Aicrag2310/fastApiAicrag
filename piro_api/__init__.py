@@ -19,7 +19,11 @@ def create_app():
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
+    
+    @app.get("/prueba")
+    async def get_test_message():
+        return {'message': "This is prueba"}
+    
     @app.get("/api/test/message")
     async def get_test_message():
         return {'message': "Test message"}
