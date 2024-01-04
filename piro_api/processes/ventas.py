@@ -38,7 +38,6 @@ def saveDetalleVenta (session, producto, guardar_venta):
     quantity = producto.quantity
 
     subtotal = producto.subtotal
-    print ("Entro aqui")
     total = producto.totalPorProducto
     try:
         detailVentas = DetalleVenta()
@@ -48,9 +47,7 @@ def saveDetalleVenta (session, producto, guardar_venta):
         detailVentas.total_detalle = total
         detailVentas.fecha = datetime.now()
         session.add(detailVentas)
-        print ("Entro aqui o no", detailVentas)
         session.commit()
-        print ("Entro aqui o no", detailVentas)
     except Exception as e:
         print(e)
         raise AppGenericException(0, 'Error creating details Venta', 400)

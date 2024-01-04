@@ -55,7 +55,6 @@ def create_product(request_data: CreateProductRequestData,
                    accept_language: str = Header(default='en'),
                    db: Session = Depends(get_db)):
     config = get_settings()
-    print ("Entro ")
     try:
         product = Product()
         product.nombre = request_data.nombre
@@ -80,7 +79,6 @@ def edit_product(product_id: int,
                  request_data: EditProductRequestData,
                  accept_language: str = Header(default='en'),
                  db: Session = Depends(get_db)):
-    print ("Entro")
     try:
         print (request_data.categoria_id)
         register: Product = db.query(Product).get(product_id)
@@ -143,7 +141,6 @@ async def upload_products(file: UploadFile = File(...), db: Session = Depends(ge
             existing_product = db.query(Product).filter_by(nombre=nombre).first()
             if existing_product:
                 # Si el producto existe, actualiza la cantidad
-                print ("Entro aqui")
                 existing_product.stock += stock
             else:
             # Crear una instancia de Product y agregarla a la sesión para la base de datos
