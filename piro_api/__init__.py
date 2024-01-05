@@ -32,16 +32,19 @@ def create_app():
     async def get_test_message(config: Settings = Depends(get_settings)):
         return {'version': config.version}
 
+    from .modules.users import user as users
     from .modules.catalogs import product as catalog_product
     from .modules.catalogs import category as category
     from .modules.catalogs import ventas as ventas
     from .modules.catalogs import Reportes as reportes
+    from .modules import auth as auth
 
     app.include_router(catalog_product.router, tags=['catalog_product'])
     app.include_router(category.router, tags=['category'])
     app.include_router(ventas.router, tags=['ventas'])
     app.include_router(reportes.router, tags=['Reportes'] )
-
+    app.include_router(users.router, tags=['Users'])
+    app.include_router(auth.router, tags=['Auth'])
 
     @app.exception_handler(AppGenericException)
     async def app_generic_exception_handler(request: Request, exc: AppGenericException):

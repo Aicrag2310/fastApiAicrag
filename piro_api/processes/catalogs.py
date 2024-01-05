@@ -5,6 +5,14 @@ import re
 from piro_api.orm import Product, Categoria
 from sqlalchemy import func, or_, select, and_, insert, delete
 from sqlalchemy.orm import joinedload
+from piro_api.exceptions import ValidationError
+from piro_api.models.catalogs import UserFormRequestData
+from sqlalchemy.orm import Session
+from typing import List, Optional
+import piro_api.repositories.catalogs.user as user_repository
+from piro_api.orm import Role, User
+
+
 
 
 def get_products_catalog_data(session, limit: int, offset: int, search_query=None):
@@ -88,3 +96,58 @@ def get_products_catalog_count(session, search_query):
 
     count = query.scalar()
     return count
+
+
+def validate_user_form_request_data(db: Session, register_id: Optional[int],
+                                    request_data: UserFormRequestData):
+    from_edit = register_id is not None
+
+    if not request_data.username and not request_data.email and not request_data.phoneNumber:
+        raise ValidationError('At least one of the following is needed. Username, email or phone number.', 400)
+
+    register = user_repository.query_active_user_by_username(db, request_data.username,
+                                                             register_id) if request_data.username else None
+    if register:
+        raise ValidationError('An active user with the same username already exists', 400)
+
+    register = user_repository.query_active_user_by_email(db, request_data.email,
+                                                          register_id) if request_data.email else None
+    if register:
+        raise ValidationError('An active user with the same email already exists', 400)
+
+    register = user_repository.query_active_user_by_phone_number(db, request_data.phoneNumber,
+                                                                 register_id) if request_data.phoneNumber else None
+    if register:
+        raise ValidationError('An active user with the same phone number already exists', 400)
+
+    if (not request_data.password or request_data.password == '') and not from_edit:
+        raise ValidationError('Invalid given password', 400)
+
+    role: Role = db.get(Role, request_data.role_id)
+
+    if not role:
+        raise ValidationError('Invalid role register.', 400)
+    
+
+
+def create_user_from_request_data(db: Session, request_data: UserFormRequestData) -> User:
+    role: Role = db.get(Role, request_data.role_id)
+
+    salt = bcrypt.gensalt()
+    byte_pswd = request_data.password.encode('utf-8')
+
+    register = User()
+    register.username = request_data.username or None
+    register.email = request_data.email or None
+    register.phone_number = request_data.phoneNumber or None
+    register.firstname = request_data.firstName
+    register.lastname = request_data.lastName
+    register.password = bcrypt.hashpw(byte_pswd, salt)
+    register.isactive = 1
+
+    register.roles.append(role)
+
+    db.add(register)
+    db.commit()
+
+    return register
