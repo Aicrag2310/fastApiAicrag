@@ -3,8 +3,8 @@ import pathlib
 from functools import lru_cache
 from typing import Optional
 
-from pydantic_settings import BaseSettings
-#from pydantic import BaseSettings
+#from pydantic_settings import BaseSettings
+from pydantic import BaseSettings
 
 SCRIPT_PATH = pathlib.Path(__file__).resolve().parent
 LOCALES_DIR = SCRIPT_PATH.joinpath('locales')
