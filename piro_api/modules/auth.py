@@ -9,6 +9,8 @@ from jose import jwt
 from jose.constants import ALGORITHMS
 import uuid
 import bcrypt
+from typing import List
+
 
 
 
@@ -66,3 +68,26 @@ def auth(request_data: AuthRequest,
         return {'token': token}
     else:
         raise AppGenericException(0, "Can't start session.", 400)
+    
+
+
+
+@router.get('/api/user/{user_id}/attributes', tags=['auth'])
+def get_user_attributes(user_id: int,
+                        accept_language: str = Header(default='en'),
+                        db: Session = Depends(get_db)):
+    config = get_settings()
+
+    user: User = db.query(User).get(user_id)
+
+    attributes: List[str] = []
+    for user_role in user.roles:
+        role_attributes: List[RoleAttribute] = db.query(RoleAttribute) \
+            .filter(RoleAttribute.roleId == user_role.id) \
+            .all()
+
+        for role_attribute in role_attributes:
+            attribute: Attribute = db.query(Attribute).get(role_attribute.attributeId)
+            attributes.append(attribute.code)
+
+    return {'data': list(set(attributes))}
